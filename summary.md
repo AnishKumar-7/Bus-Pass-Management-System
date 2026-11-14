@@ -1,77 +1,79 @@
-# Bus Pass Management System - Technical Summary
+# Technical Summary: Bus Pass Management System
 
-**Project Title**: Bus Pass Management System  
-**Author**: Anish Kumar ([@AnishKumar-7](https://github.com/AnishKumar-7))  
-**Language**: Python 3  
-**Data Structures**: Lists, Dictionaries, File I/O  
-
----
-
-## 1. Executive Summary & Architecture
-
-The **Bus Pass Management System** is a lightweight, efficient console application designed to automate the lifecycle of public commuter bus passes. It replaces manual registers with an auditable, persistent file-based management system.
-
-### Key Capabilities:
-- Automated alphanumeric ID generation (`BP101`, `BP102`, ...).
-- Concession enforcement (automatic 25% discount for verified student passengers).
-- Multi-tier tariff scheduling (`Monthly`, `Quarterly`, `Yearly`).
-- Direct file serialization and deserialization via flat-file database (`buspass.txt`).
-- Search and renewal modules with full input sanitation.
+- **Course:** Programming Fundamentals and Logic Building Using Python (`RU-100-01-0021`)
+- **Institution:** Rungta International Skills University, School of Computer Science & Engineering
+- **Degree:** B.Tech Computer Science & Engineering (First Semester)
+- **Author:** Anish Kumar
+- **Implementation Language:** Python 3
+- **Primary Data Structures:** Dictionaries, Lists, Flat-file I/O
 
 ---
 
-## 2. Core Functional Modules
+## 1. System Overview
 
-| Module / Function | Purpose | Complexity |
+The Bus Pass Management System is a console application built to manage commuter bus passes. It replaces manual paper registers with an automated file-based workflow that supports issuing passes, applying student concessions, renewing existing passes, and searching records.
+
+### Functional Capabilities:
+- Sequential ID generation (`BP101`, `BP102`, etc.) based on existing stored records.
+- Automatic 25% discount applied for verified student passengers.
+- Multi-tier tariff schedules for Monthly, Quarterly, and Yearly passes.
+- Direct flat-file storage in `buspass.txt` with pipe-delimited records.
+- Input validation to reject invalid pass tiers and invalid categories.
+
+---
+
+## 2. Function Hierarchy and Modules
+
+| Function | Purpose | Complexity |
 | :--- | :--- | :--- |
-| `load_passes(filename)` | Deserializes `buspass.txt` into in-memory dictionary objects | $O(N)$ |
-| `save_passes(passes, filename)` | Serializes all active passes to disk atomically | $O(N)$ |
-| `generate_next_id(passes)` | Finds highest existing ID and generates next sequential pass ID | $O(N)$ |
-| `calculate_fee(pass_type, category)` | Applies discount rules and returns calculated tariff | $O(1)$ |
-| `issue_pass(...)` | Validates input, constructs record, and appends to storage | $O(1)$ |
-| `renew_pass(...)` | Updates validity tier, recalculates fee, and persists changes | $O(N)$ |
-| `search_pass(...)` | Performs case-insensitive lookup by pass ID | $O(N)$ |
-| `view_all_passes(...)` | Displays all issued passes in formatted table | $O(N)$ |
+| `load_passes(filename)` | Reads and parses `buspass.txt` into memory | O(N) |
+| `save_passes(passes, filename)` | Writes active records back to disk | O(N) |
+| `generate_next_id(passes)` | Scans existing records to compute the next sequential ID | O(N) |
+| `calculate_fee(pass_type, category)` | Computes base fee and applies 25% student concession | O(1) |
+| `issue_pass(...)` | Validates user input and creates a new pass record | O(1) |
+| `renew_pass(...)` | Updates validity tier and fee for an existing ID | O(N) |
+| `search_pass(...)` | Looks up a pass record by ID (case-insensitive) | O(N) |
+| `view_all_passes(...)` | Displays all stored passes in a formatted table | O(N) |
 
 ---
 
-## 3. Mathematical & Concession Formulations
+## 3. Mathematical and Concession Models
 
-### 3.1 Base Tariff Schedule
-- **Monthly Tier**: $T_{\text{Monthly}} = \text{Rs. } 500$ (Validity: 30 days)
-- **Quarterly Tier**: $T_{\text{Quarterly}} = \text{Rs. } 1350$ (Validity: 90 days)
-- **Yearly Tier**: $T_{\text{Yearly}} = \text{Rs. } 4800$ (Validity: 365 days)
+### 3.1 Base Tariffs
+- **Monthly Tier:** Rs. 500 (30 days validity)
+- **Quarterly Tier:** Rs. 1350 (90 days validity)
+- **Yearly Tier:** Rs. 4800 (365 days validity)
 
-### 3.2 Student Concession Formula (25% Discount)
-For a selected pass tier with base fee $F_{\text{base}}$:
+### 3.2 Student Concession (25% Discount)
+For base tariff $F_{\text{base}}$:
 $$\text{Fee}_{\text{Student}} = F_{\text{base}} \times (1 - 0.25) = F_{\text{base}} \times 0.75$$
 
-- **Monthly (Student)**: $500 \times 0.75 = \text{Rs. } 375$
-- **Quarterly (Student)**: $1350 \times 0.75 = \text{Rs. } 1012.50$
-- **Yearly (Student)**: $4800 \times 0.75 = \text{Rs. } 3600$
+- Monthly (Student): $500 \times 0.75 = \text{Rs. } 375$
+- Quarterly (Student): $1350 \times 0.75 = \text{Rs. } 1012.50$
+- Yearly (Student): $4800 \times 0.75 = \text{Rs. } 3600$
 
-### 3.3 Sequential Alphanumeric ID Increment Logic
+### 3.3 Alphanumeric ID Generation
 $$\text{ID}_{k+1} = \text{"BP"} + \left(\max_{p \in \text{Passes}} \text{NumericSuffix}(p.\text{id}) + 1\right)$$
-Where the default baseline identifier is $\text{"BP101"}$.
+If no previous passes exist, generation begins at `BP101`.
 
 ---
 
-## 4. Verification & Testing
+## 4. Verification and Self-Test Results
 
-The system includes automated tests verifying the following scenarios:
-1. **Pass Issuance**: Correct ID generation, fee computation, and field persistence.
-2. **Student Discount**: Validation of 25% discount application across all duration tiers.
-3. **Pass Renewal**: Proper transition across duration tiers and fee recalculation.
-4. **Input Sanitation**: Rejection of invalid pass types or unsupported categories.
-5. **Persistence**: Consistency of reads and writes against `buspass.txt`.
+The built-in self-test suite verifies all core system requirements:
+1. **Pass Issuance:** Verifies ID generation, correct fee assignment, and file writing.
+2. **Student Concession:** Verifies 25% discount across all tiers.
+3. **Pass Renewal:** Validates tier switching and fee recalculation.
+4. **Input Sanitation:** Verifies rejection of unsupported pass tiers.
+5. **Data Persistence:** Verifies read/write consistency with `buspass.txt`.
 
 ---
 
-## 5. File Persistence Format (`buspass.txt`)
+## 5. Storage Format (`buspass.txt`)
 
-Data is stored in clean pipe-delimited format:
+Data is stored as pipe-delimited plaintext:
 ```text
 BP101 | Riya | Route 5 | Monthly | Rs. 500
 BP102 | Aman | Route 7 | Yearly | Rs. 3600
 ```
-This ensures high readability and backward-compatible parsing.
+This format allows simple file inspection and robust backward-compatible parsing.
