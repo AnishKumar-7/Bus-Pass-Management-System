@@ -87,7 +87,7 @@ Let an issued or renewed pass have base tariff $F_{\text{base}}$ defined by dura
 | **Pass Type** | `Monthly`, `Quarterly`, `Yearly` | Case-insensitive normalized; labeled inputs like `Type: Monthly` stripped | `Invalid pass type. Choose Monthly, Quarterly or Yearly. Pass not issued.` |
 | **Category** | `General`, `Student` | Case-insensitive normalized; unsupported categories rejected | `Invalid category. Choose Student or General. Pass not issued.` |
 | **Pass ID** | Alphanumeric `BP\d+` | Strip prefixes (`ID: BP101`, `ID BP101`, `bp101` $\rightarrow$ `BP101`) | `Pass with ID {id} not found.` |
-| **Menu Choice** | Integer $\in [1, 7]$ | Handles digits, verbose labels (`Menu option 1 (Issue)`), and single-line syntax | Reprompts user with prescriptive error guidance |
+| **Menu Choice** | Integer $\in [1, 5]$ | Handles digits, verbose labels (`Menu option 1 (Issue)`), and single-line syntax | Reprompts user with prescriptive error guidance |
 
 ---
 
@@ -116,7 +116,7 @@ The system has been evaluated across the required operational test scenarios fro
 ![Test Case 1 VS Code Terminal Execution](screenshots/test_case_1_normal.png)
 
 ```text
-Enter your choice (1-7): 1
+Enter your choice (1-5): 1
 Name: Riya
 Route: Route 5
 Type: Monthly
@@ -128,7 +128,7 @@ Pass issued. ID: BP101 | Riya | Route 5 | Monthly | Fee: Rs. 500 | Valid: 30 day
 
 ### Test Case 2: Boundary / Minimum Input (Empty File)
 * **Scenario**: Querying all passes when `buspass.txt` is completely empty.
-* **Precondition**: `buspass.txt` is empty (Option `6`).
+* **Precondition**: `buspass.txt` is empty.
 * **Execution**: Menu Option `4` (View all passes)
 * **Output**: `No passes issued yet.`
 * **Status**: **PASS**
@@ -136,10 +136,7 @@ Pass issued. ID: BP101 | Riya | Route 5 | Monthly | Fee: Rs. 500 | Valid: 30 day
 ![Test Case 2 VS Code Terminal Execution](screenshots/test_case_2_boundary.png)
 
 ```text
-Enter your choice (1-7): 6
-[SUCCESS] buspass.txt is now empty! (Test Case 2 ready)
-
-Enter your choice (1-7): 4
+Enter your choice (1-5): 4
 No passes issued yet.
 ```
 
@@ -155,7 +152,7 @@ No passes issued yet.
 ![Test Case 3 VS Code Terminal Execution](screenshots/test_case_3_invalid.png)
 
 ```text
-Enter your choice (1-7): 1
+Enter your choice (1-5): 1
 Name: Aman
 Route: Route 7
 Type: Weekly
@@ -167,7 +164,7 @@ Invalid pass type. Choose Monthly, Quarterly or Yearly. Pass not issued.
 
 ### Test Case 4: Existing File & Multi-Operation Verification
 * **Scenario**: Pre-existing pass file contains record `BP101`. Settle new Yearly Student pass with 25% discount, then perform case-insensitive ID search.
-* **Precondition**: `buspass.txt` pre-seeded with: `BP101 | Riya | Route 5 | Monthly | Rs. 500` (Option `7`).
+* **Precondition**: `buspass.txt` pre-seeded with: `BP101 | Riya | Route 5 | Monthly | Rs. 500`.
 * **Action (a)**: Option `1` (Issue): Name: `Aman`, Route: `Route 7`, Type: `Yearly`, Category: `Student`
   * *Fee Calculation*: $4800 \times 0.75 = \mathbf{Rs.\; 3600}$
   * *Output (a)*: `Pass issued. ID: BP102 | Aman | Route 7 | Yearly | Fee: Rs. 3600 | Valid: 365 days`
@@ -178,16 +175,14 @@ Invalid pass type. Choose Monthly, Quarterly or Yearly. Pass not issued.
 ![Test Case 4 VS Code Terminal Execution](screenshots/test_case_4_multi_operation.png)
 
 ```text
-[SUCCESS] buspass.txt initialized with: BP101 | Riya | Route 5 | Monthly | Rs. 500 (Test Case 4 ready)
-
-Enter your choice (1-7): 1
+Enter your choice (1-5): 1
 Name: Aman
 Route: Route 7
 Type: Yearly
 Category: Student
 Pass issued. ID: BP102 | Aman | Route 7 | Yearly | Fee: Rs. 3600 | Valid: 365 days
 
-Enter your choice (1-7): 3
+Enter your choice (1-5): 3
 Enter Pass ID: BP101
 BP101 | Riya | Route 5 | Monthly | Fee: Rs. 500
 ```
@@ -204,7 +199,7 @@ BP101 | Riya | Route 5 | Monthly | Fee: Rs. 500
 ![Test Case 5 VS Code Terminal Execution](screenshots/test_case_5_renewal.png)
 
 ```text
-Enter your choice (1-7): 2
+Enter your choice (1-5): 2
 Enter Pass ID to renew: BP101
 Enter Pass Type (Monthly/Quarterly/Yearly) [Current: Monthly]: Quarterly
 Enter Category (General/Student) [Current: General]: Student
