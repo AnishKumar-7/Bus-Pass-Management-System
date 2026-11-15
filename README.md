@@ -70,8 +70,7 @@ Bus-Pass-Management-System/
 │   ├── test_case_3_invalid.png
 │   ├── test_case_4_multi_operation.png
 │   ├── test_case_5_renewal.png
-│   ├── test_case_all_pass_vscode.png
-│   └── vscode_full_ide_test_pass.png
+│   └── test_case_all_pass_vscode.png
 └── .gitignore             # Standard Python gitignore
 ```
 
