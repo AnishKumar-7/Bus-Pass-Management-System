@@ -238,10 +238,24 @@ def normalize_pass_type(raw_type: str):
     """Validates and normalizes pass type."""
     if not raw_type:
         return None
-    cleaned = raw_type.replace("Type:", "").replace("Type", "").strip().capitalize()
+    cleaned = raw_type.replace("Type:", "").replace("Type", "").strip()
     for valid in PASS_TYPES:
-        if cleaned == valid.capitalize():
+        if cleaned.lower() == valid.lower():
             return valid
+    mapping = {
+        "1": "Monthly",
+        "m": "Monthly",
+        "monthly": "Monthly",
+        "2": "Quarterly",
+        "q": "Quarterly",
+        "quarterly": "Quarterly",
+        "3": "Yearly",
+        "y": "Yearly",
+        "yearly": "Yearly"
+    }
+    cleaned_lower = cleaned.lower()
+    if cleaned_lower in mapping:
+        return mapping[cleaned_lower]
     return None
 
 
@@ -249,9 +263,11 @@ def normalize_category(raw_cat: str):
     """Validates and normalizes passenger category."""
     if not raw_cat:
         return None
-    cleaned = raw_cat.replace("Category:", "").replace("Category", "").strip().capitalize()
-    if cleaned in ["General", "Student"]:
-        return cleaned
+    cleaned = raw_cat.replace("Category:", "").replace("Category", "").strip().lower()
+    if cleaned in ["general", "gen", "g", "1"]:
+        return "General"
+    if cleaned in ["student", "stud", "s", "2"]:
+        return "Student"
     return None
 
 
@@ -260,16 +276,39 @@ def issue_pass(passes: list, name: str = None, route: str = None,
                filename: str = DEFAULT_FILE_NAME) -> dict:
     """Issue a new commuter bus pass with input validation and fee calculation."""
     if name is None:
-        name = input("Name: ").strip()
+        try:
+            name = input("Name: ").strip()
+        except (KeyboardInterrupt, EOFError):
+            print()
+            return None
     if route is None:
-        route = input("Route: ").strip()
+        try:
+            route = input("Route: ").strip()
+        except (KeyboardInterrupt, EOFError):
+            print()
+            return None
     if pass_type is None:
-        pass_type = input("Type: ").strip()
+        try:
+            pass_type = input("Type: ").strip()
+        except (KeyboardInterrupt, EOFError):
+            print()
+            return None
     if category is None:
-        category = input("Category: ").strip()
+        try:
+            category = input("Category: ").strip()
+        except (KeyboardInterrupt, EOFError):
+            print()
+            return None
 
     name = name.replace("Name:", "").strip()
     route = route.replace("Route:", "").strip()
+
+    if not name:
+        print("Name cannot be empty. Pass not issued.")
+        return None
+    if not route:
+        print("Route cannot be empty. Pass not issued.")
+        return None
 
     valid_type = normalize_pass_type(pass_type)
     if not valid_type:
@@ -304,7 +343,15 @@ def renew_pass(passes: list, pass_id: str = None, new_type: str = None,
                category: str = None, filename: str = DEFAULT_FILE_NAME) -> dict:
     """Renew an existing pass by updating duration tier and recalculating fee."""
     if pass_id is None:
-        pass_id = input("Enter Pass ID to renew: ").strip()
+        try:
+            pass_id = input("Enter Pass ID to renew: ").strip()
+        except (KeyboardInterrupt, EOFError):
+            print()
+            return None
+
+    if not pass_id:
+        print("Pass ID cannot be empty. Pass not renewed.")
+        return None
 
     search_key = pass_id.replace("ID:", "").replace("ID", "").strip().upper()
     target = None
@@ -318,12 +365,20 @@ def renew_pass(passes: list, pass_id: str = None, new_type: str = None,
         return None
 
     if new_type is None:
-        new_type = input(f"Enter Pass Type (Monthly/Quarterly/Yearly) [Current: {target['type']}]: ").strip()
+        try:
+            new_type = input(f"Enter Pass Type (Monthly/Quarterly/Yearly) [Current: {target['type']}]: ").strip()
+        except (KeyboardInterrupt, EOFError):
+            print()
+            return None
         if not new_type:
             new_type = target["type"]
 
     if category is None:
-        category = input(f"Enter Category (General/Student) [Current: {target['category']}]: ").strip()
+        try:
+            category = input(f"Enter Category (General/Student) [Current: {target['category']}]: ").strip()
+        except (KeyboardInterrupt, EOFError):
+            print()
+            return None
         if not category:
             category = target["category"]
 
@@ -352,7 +407,15 @@ def renew_pass(passes: list, pass_id: str = None, new_type: str = None,
 def search_pass(passes: list, pass_id: str = None) -> dict:
     """Search for a pass by ID (case-insensitive) and display details."""
     if pass_id is None:
-        pass_id = input("Enter Pass ID: ").strip()
+        try:
+            pass_id = input("Enter Pass ID: ").strip()
+        except (KeyboardInterrupt, EOFError):
+            print()
+            return None
+
+    if not pass_id:
+        print("Pass ID cannot be empty.")
+        return None
 
     search_key = pass_id.replace("ID:", "").replace("ID", "").strip().upper()
     for p in passes:
@@ -371,8 +434,7 @@ def view_all_passes(passes: list) -> None:
         return
 
     for p in passes:
-        valid_part = f" | Valid: {p.get('valid_days', 30)} days" if "valid_days" in p else ""
-        print(f"{p['id']} | {p['name']} | {p['route']} | {p['type']} | Fee: Rs. {p['fee']}{valid_part}")
+        print(f"{p['id']} | {p['name']} | {p['route']} | {p['type']} | Fee: Rs. {p['fee']}")
 
 
 def display_menu():
@@ -467,19 +529,46 @@ def main():
             print("\nExiting application. Goodbye!")
             break
 
-        if choice == "1":
+        choice_clean = choice.lower().replace("-", " ").strip()
+
+        if (
+            choice_clean in ["1", "issue", "issue new pass", "issue pass"]
+            or choice_clean.startswith("1.")
+            or choice_clean.startswith("1 ")
+            or choice_clean == "1"
+        ):
             print("\n--- Issue New Pass ---")
             issue_pass(passes, filename=data_file)
-        elif choice == "2":
+        elif (
+            choice_clean in ["2", "renew", "renew pass", "renew existing pass"]
+            or choice_clean.startswith("2.")
+            or choice_clean.startswith("2 ")
+            or choice_clean == "2"
+        ):
             print("\n--- Renew Pass ---")
             renew_pass(passes, filename=data_file)
-        elif choice == "3":
+        elif (
+            choice_clean in ["3", "search", "search pass", "search pass by id"]
+            or choice_clean.startswith("3.")
+            or choice_clean.startswith("3 ")
+            or choice_clean == "3"
+        ):
             print("\n--- Search Pass by ID ---")
             search_pass(passes)
-        elif choice == "4":
+        elif (
+            choice_clean in ["4", "view", "view all", "view all passes"]
+            or choice_clean.startswith("4.")
+            or choice_clean.startswith("4 ")
+            or choice_clean == "4"
+        ):
             print("\n--- View All Passes ---")
             view_all_passes(passes)
-        elif choice in ["5", "exit", "quit", "q"]:
+        elif (
+            choice_clean in ["5", "exit", "quit", "q", "close"]
+            or choice_clean.startswith("5.")
+            or choice_clean.startswith("5 ")
+            or choice_clean == "5"
+        ):
             print("\nThank you for using Bus Pass Management System. Goodbye!")
             break
         else:
