@@ -567,5 +567,22 @@ def main():
             print("Invalid choice. Please enter a number between 1 and 7.")
 
 
+def run_self_tests():
+    """Automated self-test suite runner."""
+    import unittest
+    try:
+        import test_bus_pass
+        suite = unittest.defaultTestLoader.loadTestsFromModule(test_bus_pass)
+        runner = unittest.TextTestRunner(verbosity=2)
+        result = runner.run(suite)
+        return 0 if result.wasSuccessful() else 1
+    except Exception as e:
+        print(f"Error running tests: {e}")
+        return 1
+
+
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) > 1 and sys.argv[1].lower() in ["--test", "-t", "test"]:
+        sys.exit(run_self_tests())
+    else:
+        main()

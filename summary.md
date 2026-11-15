@@ -67,6 +67,44 @@ The built-in self-test suite verifies all core system requirements:
 4. **Input Sanitation:** Verifies rejection of unsupported pass tiers.
 5. **Data Persistence:** Verifies read/write consistency with `buspass.txt`.
 
+### 4.1 Automated Test Suite Verification Screenshot
+
+![Official Acceptance Test Cases Passed](test_cases_pass.png)
+
+### 4.2 Test Execution Console Output
+
+```text
+PS C:\Users\Anish\Bus-Pass-Management-System> python main.py --test
+test_case_1_normal_input (test_bus_pass.TestBusPassManagementSystem.test_case_1_normal_input)
+Test Case 1: Normal Input ... ok
+test_case_2_boundary_minimum_input (test_bus_pass.TestBusPassManagementSystem.test_case_2_boundary_minimum_input)
+Test Case 2: Boundary / Minimum Input ... ok
+test_case_3_invalid_input (test_bus_pass.TestBusPassManagementSystem.test_case_3_invalid_input)
+Test Case 3: Invalid Input ... ok
+test_case_4_different_valid_scenario (test_bus_pass.TestBusPassManagementSystem.test_case_4_different_valid_scenario)
+Test Case 4: Different Valid Scenario ... ok
+test_renew_pass_feature (test_bus_pass.TestBusPassManagementSystem.test_renew_pass_feature)
+Verify renewing an existing pass updates validity and applies discounts. ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.004s
+
+OK
+```
+
+### 4.3 Acceptance Test Cases Compliance Matrix
+
+| Test Case | Scenario / Condition | Input Parameters | Expected Console Output | Status |
+| :--- | :--- | :--- | :--- | :---: |
+| **TC-1** | Normal Issuance | Option 1, Riya, Route 5, Monthly, General | `Pass issued. ID: BP101 \| Riya \| Route 5 \| Monthly \| Fee: Rs. 500 \| Valid: 30 days` | **PASS** |
+| **TC-2** | Empty Database | `buspass.txt` is empty, Option 4 (View all) | `No passes issued yet.` | **PASS** |
+| **TC-3** | Invalid Pass Tier | Option 1, Aman, Route 7, Weekly, General | `Invalid pass type. Choose Monthly, Quarterly or Yearly. Pass not issued.` | **PASS** |
+| **TC-4(a)** | Student Concession | Option 1, Aman, Route 7, Yearly, Student | `Pass issued. ID: BP102 \| Aman \| Route 7 \| Yearly \| Fee: Rs. 3600 \| Valid: 365 days` | **PASS** |
+| **TC-4(b)** | Search by ID | Option 3, ID BP101 | `BP101 \| Riya \| Route 5 \| Monthly \| Fee: Rs. 500` | **PASS** |
+| **TC-5** | Pass Renewal | Option 2, ID BP101, Quarterly, Student | `Pass renewed. ID: BP101 \| Riya \| Route 5 \| Quarterly \| Fee: Rs. 1012.5 \| Valid: 90 days` | **PASS** |
+
+All test cases execute with 100% specification parity and zero errors.
+
 ---
 
 ## 5. Storage Format (`buspass.txt`)

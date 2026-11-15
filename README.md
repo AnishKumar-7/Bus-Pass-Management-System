@@ -146,10 +146,12 @@ Invalid pass type. Choose Monthly, Quarterly or Yearly. Pass not issued.
 ## Project Structure
 ```text
 Bus-Pass-Management-System/
-├── main.py        # Python 3 console application and test runner
-├── buspass.txt    # Flat-file database for persistent storage
-├── README.md      # Project overview and run instructions
-└── summary.md     # Technical and architectural summary
+├── main.py             # Python 3 console application and test runner
+├── test_bus_pass.py    # Automated test suite (5 acceptance test cases)
+├── test_cases_pass.png # High-resolution test suite verification screenshot
+├── buspass.txt         # Flat-file database for persistent storage
+├── README.md           # Project overview and run instructions
+└── summary.md          # Technical and architectural summary with test proof
 ```
 
 ---
