@@ -62,6 +62,7 @@ Bus-Pass-Management-System/
 ├── main.py                # Core application, domain logic & interactive console
 ├── test_bus_pass.py       # Automated unittest suite (5 acceptance test cases)
 ├── buspass.txt            # Persistent flat-file storage database
+├── buspass.csv            # Tabular CSV database export with column headers
 ├── README.md              # System architecture, user guide & verification matrix
 ├── summary.md             # Technical design document & test verification report
 ├── test_cases_pass.png    # Primary test pass verification graphic

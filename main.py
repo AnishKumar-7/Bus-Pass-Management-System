@@ -20,14 +20,16 @@ PRODUCTION-READY BUS PASS MANAGEMENT SYSTEM
 import os
 import sys
 import re
+import csv
 
 # ==============================================================================
 # SECTION 1: CONFIGURATION, PATHS & TARIFF SCHEDULE
 # ==============================================================================
 
-# Script Directory and Default Data File Path
+# Script Directory, Default TXT and CSV Data File Paths
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_FILE_NAME = os.path.join(BASE_DIR, "buspass.txt")
+CSV_FILE_NAME = os.path.join(BASE_DIR, "buspass.csv")
 
 
 def resolve_file_path(filename: str = DEFAULT_FILE_NAME) -> str:
@@ -71,6 +73,31 @@ def load_passes(filename: str = DEFAULT_FILE_NAME) -> list:
     passes = []
 
     if not os.path.exists(filepath):
+        # Fallback to buspass.csv if buspass.txt is absent
+        csv_path = resolve_file_path(CSV_FILE_NAME)
+        if os.path.exists(csv_path) and os.path.abspath(filepath) == os.path.abspath(DEFAULT_FILE_NAME):
+            try:
+                with open(csv_path, "r", encoding="utf-8") as cf:
+                    reader = csv.DictReader(cf)
+                    for row in reader:
+                        fee_raw = row.get("Fee", "0").replace("Rs.", "").replace("Rs", "").strip()
+                        try:
+                            fee_val = float(fee_raw)
+                            fee = int(fee_val) if fee_val.is_integer() else fee_val
+                        except ValueError:
+                            fee = 0
+                        passes.append({
+                            "id": row.get("Pass_ID", "").strip(),
+                            "name": row.get("Name", "").strip(),
+                            "route": row.get("Route", "").strip(),
+                            "type": row.get("Pass_Type", "").strip(),
+                            "category": row.get("Category", "General").strip(),
+                            "fee": fee,
+                            "valid_days": int(row.get("Valid_Days", 30))
+                        })
+                return passes
+            except Exception as e:
+                print(f"Error loading passes from CSV {csv_path}: {e}", file=sys.stderr)
         return passes
 
     try:
@@ -149,11 +176,47 @@ def load_passes(filename: str = DEFAULT_FILE_NAME) -> list:
     return passes
 
 
+def save_passes_csv(passes: list, filename: str = CSV_FILE_NAME) -> None:
+    """
+    Saves passes to CSV format with column headers.
+    Headers: Pass_ID, Name, Route, Pass_Type, Category, Fee, Valid_Days
+    Uses atomic write via temporary file.
+    """
+    filepath = resolve_file_path(filename)
+    temp_filepath = f"{filepath}.tmp"
+    try:
+        with open(temp_filepath, "w", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f)
+            writer.writerow(["Pass_ID", "Name", "Route", "Pass_Type", "Category", "Fee", "Valid_Days"])
+            for p in passes:
+                writer.writerow([
+                    p.get("id", ""),
+                    p.get("name", ""),
+                    p.get("route", ""),
+                    p.get("type", ""),
+                    p.get("category", "General"),
+                    p.get("fee", 0),
+                    p.get("valid_days", 30)
+                ])
+        if os.path.exists(filepath):
+            os.replace(temp_filepath, filepath)
+        else:
+            os.rename(temp_filepath, filepath)
+    except Exception as e:
+        print(f"Error saving passes to CSV {filepath}: {e}", file=sys.stderr)
+        if os.path.exists(temp_filepath):
+            try:
+                os.remove(temp_filepath)
+            except OSError:
+                pass
+
+
 def save_passes(passes: list, filename: str = DEFAULT_FILE_NAME) -> None:
     """
     Saves the list of pass dictionaries to buspass.txt in pipe-delimited format.
     Format: ID | Name | Route | Type | Rs. Fee
     Uses atomic write via temporary file to prevent data corruption.
+    Automatically keeps buspass.csv synchronized in the workspace.
     """
     filepath = resolve_file_path(filename)
     temp_filepath = f"{filepath}.tmp"
@@ -168,6 +231,10 @@ def save_passes(passes: list, filename: str = DEFAULT_FILE_NAME) -> None:
             os.replace(temp_filepath, filepath)
         else:
             os.rename(temp_filepath, filepath)
+
+        # Synchronize CSV mirror when saving default project file
+        if os.path.abspath(filepath) == os.path.abspath(DEFAULT_FILE_NAME):
+            save_passes_csv(passes, CSV_FILE_NAME)
     except Exception as e:
         print(f"Error saving passes to {filepath}: {e}", file=sys.stderr)
         if os.path.exists(temp_filepath):
@@ -553,8 +620,13 @@ def main():
             filepath = resolve_file_path(DEFAULT_FILE_NAME)
             if os.path.exists(filepath):
                 open(filepath, "w", encoding="utf-8").close()
+            csv_filepath = resolve_file_path(CSV_FILE_NAME)
+            if os.path.exists(csv_filepath):
+                with open(csv_filepath, "w", newline="", encoding="utf-8") as cf:
+                    writer = csv.writer(cf)
+                    writer.writerow(["Pass_ID", "Name", "Route", "Pass_Type", "Category", "Fee", "Valid_Days"])
             passes.clear()
-            print("\n[SUCCESS] buspass.txt is now empty! (Test Case 2 ready)")
+            print("\n[SUCCESS] buspass.txt and buspass.csv are now empty! (Test Case 2 ready)")
         elif choice == "preseed":
             filepath = resolve_file_path(DEFAULT_FILE_NAME)
             record = payload if payload else "BP101 | Riya | Route 5 | Monthly | Rs. 500"
@@ -562,7 +634,8 @@ def main():
                 f.write(f"{record}\n")
             passes.clear()
             passes.extend(load_passes(DEFAULT_FILE_NAME))
-            print(f"\n[SUCCESS] buspass.txt initialized with: {record} (Test Case 4 ready)")
+            save_passes_csv(passes, CSV_FILE_NAME)
+            print(f"\n[SUCCESS] buspass.txt and buspass.csv initialized with: {record} (Test Case 4 ready)")
         else:
             print("Invalid choice. Please enter a number between 1 and 7.")
 

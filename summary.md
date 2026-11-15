@@ -55,8 +55,9 @@ flowchart TD
    Implemented as a hash map providing $O(1)$ constant-time lookup for duration in days and base tariff.
 2. **In-Memory Pass Storage (`passes: List[Dict]`)**:
    Holds active pass dictionaries in memory (`id`, `name`, `route`, `type`, `category`, `fee`, `valid_days`).
-3. **Atomic File Persistence (`buspass.txt`)**:
-   Serialized in pipe-delimited plaintext format (`BP101 | Riya | Route 5 | Monthly | Rs. 500`). File writes operate through an atomic temporary file (`buspass.txt.tmp` $\rightarrow$ `os.replace`), preventing partial writes upon termination.
+3. **Atomic File Persistence (`buspass.txt` & `buspass.csv`)**:
+   - `buspass.txt`: Serialized in pipe-delimited plaintext format (`BP101 | Riya | Route 5 | Monthly | Rs. 500`). File writes operate through an atomic temporary file (`buspass.txt.tmp` $\rightarrow$ `os.replace`), preventing partial writes upon termination.
+   - `buspass.csv`: Standard comma-separated values database export (`Pass_ID,Name,Route,Pass_Type,Category,Fee,Valid_Days`) synchronized automatically on every pass mutation.
 
 ---
 
