@@ -1,162 +1,149 @@
 # Bus Pass Management System
 
-A console-based bus pass management system built in Python 3. It handles issuing, renewing, searching, and managing commuter bus passes with automated fee calculation, student concession rules, and flat-file persistent storage.
+A production-grade, zero-dependency console application in Python 3 for commuter bus pass issuance, renewal, ID lookup, and flat-file persistent storage.
 
 ---
 
-## Features
+## Architecture & System Design
 
-1. **Issue New Pass:**
-   - Generates sequential pass IDs (`BP101`, `BP102`, etc.).
-   - Computes base fee based on duration (`Monthly`, `Quarterly`, `Yearly`).
-   - Applies an automatic 25% discount for students.
-   - Validates pass types and categories before saving to `buspass.txt`.
+The system is designed with a strict separation between domain state, tariff calculation engines, input validation pipelines, and terminal presentation:
 
-2. **Renew Pass:**
-   - Looks up existing pass by ID.
-   - Updates the validity period and recalculates fee with applicable student concession.
-   - Updates the storage file atomically to maintain data integrity.
+```
+┌────────────────────────────────────────────────────────┐
+│                   CLI Controller                       │
+│    (Session dispatcher, command routing, exit handler) │
+└───────────────────────────┬────────────────────────────┘
+                            │
+            ┌───────────────┴───────────────┐
+            ▼                               ▼
+┌────────────────────────┐      ┌────────────────────────┐
+│  Validation Layer      │      │  Domain & State Layer  │
+│  - Pass tier checking  │      │  - In-memory passes    │
+│  - Category validation │◄────►│  - Sequential ID (BP)  │
+│  - ID format parsing   │      │  - Tariff & discount   │
+└────────────────────────┘      └───────────┬────────────┘
+                                            │
+                                            ▼
+                                ┌────────────────────────┐
+                                │   Persistence Layer    │
+                                │   - buspass.txt        │
+                                │   - Atomic file writes │
+                                └────────────────────────┘
+```
 
-3. **Search Pass by ID:**
-   - Case-insensitive search across issued passes.
-   - Formatted record output: `BP101 | Riya | Route 5 | Monthly | Fee: Rs. 500`
-
-4. **View All Passes:**
-   - Displays all active passes in a clean tabular view.
-
-5. **Data Persistence (`buspass.txt`):**
-   - Automatically loads existing records on startup.
-   - Writes updates back to disk after every change.
-
-6. **Automated Test Suite:**
-   - Self-test suite verifying normal issuance, concessions, renewals, and invalid input handling.
+### Key Architectural Characteristics
+* **Flat-File Atomic Persistence**: Records are saved in pipe-delimited plaintext to `buspass.txt`. File updates use atomic temp-file substitution (`os.replace`) to ensure zero file corruption during unexpected termination.
+* **$O(1)$ Tariff Lookups**: The pass tariff catalog uses a hash map (`dict`) with constant-time lookup for duration days and pricing schedules.
+* **Sequential Alphanumeric ID Engine**: Generates unique identifiers (`BP101`, `BP102`, ...) dynamically computed from existing storage to eliminate collision risks.
+* **Pure Financial Calculation**: `calculate_fee()` operates as a deterministic function with exact concession rate application and clean integer rounding.
 
 ---
 
-## Pass Tiers and Pricing Matrix
+## Business Rules & Tariff Schedule
 
+### Pass Tiers and Pricing Matrix
 | Pass Tier | Validity Duration | Standard Fee (General) | Concession Fee (Student - 25% Off) |
-| :--- | :--- | :--- | :--- |
+|:---:|:---:|:---:|:---:|
 | **Monthly** | 30 Days | Rs. 500 | Rs. 375 |
 | **Quarterly** | 90 Days | Rs. 1350 | Rs. 1012.50 |
 | **Yearly** | 365 Days | Rs. 4800 | Rs. 3600 |
 
----
-
-## Architecture and Data Structures
-
-### Pass Configuration
-```python
-PASS_TYPES = {
-    "Monthly": {"days": 30, "fee": 500},
-    "Quarterly": {"days": 90, "fee": 1350},
-    "Yearly": {"days": 365, "fee": 4800}
-}
-```
-
-### Stored Pass Record Format
-```python
-{
-    "id": "BP101",
-    "name": "Riya",
-    "route": "Route 5",
-    "type": "Monthly",
-    "category": "General",
-    "fee": 500,
-    "valid_days": 30
-}
-```
-
-### Core Functions
-- `load_passes(filename)`: Reads records from file into memory.
-- `save_passes(passes, filename)`: Saves updated records to disk.
-- `generate_next_id(passes)`: Generates next sequential pass ID.
-- `calculate_fee(pass_type, category)`: Computes base fee and applies student discount.
-- `issue_pass(...)`: Handles new pass issuance and input validation.
-- `renew_pass(...)`: Updates existing pass duration and fee.
-- `search_pass(...)`: Searches and displays pass details by ID.
-- `view_all_passes(...)`: Displays all issued passes.
-- `run_self_tests()`: Automated verification suite.
-
----
-
-## How to Run
-
-### Run Interactive Console
-```bash
-python main.py
-```
-
-### Run Self-Test Suite
-```bash
-python main.py --test
-```
-
----
-
-## Verification Scenarios
-
-### Scenario 1: Issue New Pass (General)
-```text
-Menu Option: 1 (Issue)
-Name: Riya
-Route: Route 5
-Type: Monthly
-Category: General
-
-Output:
-Pass issued. ID: BP101 | Riya | Route 5 | Monthly | Fee: Rs. 500 | Valid: 30 days
-```
-
-### Scenario 2: Issue Pass with Student Discount
-```text
-Menu Option: 1 (Issue)
-Name: Aman
-Route: Route 7
-Type: Yearly
-Category: Student
-
-Output:
-Pass issued. ID: BP102 | Aman | Route 7 | Yearly | Fee: Rs. 3600 | Valid: 365 days
-```
-
-### Scenario 3: Search by ID
-```text
-Menu Option: 3 (Search)
-ID: BP101
-
-Output:
-BP101 | Riya | Route 5 | Monthly | Fee: Rs. 500
-```
-
-### Scenario 4: Validation on Invalid Input
-```text
-Menu Option: 1 (Issue)
-Name: Aman
-Route: Route 7
-Type: Weekly
-Category: General
-
-Output:
-Invalid pass type. Choose Monthly, Quarterly or Yearly. Pass not issued.
-```
+### Financial & Concession Engine
+$$\text{Fee}_{\text{General}} = F_{\text{base}}$$
+$$\text{Fee}_{\text{Student}} = F_{\text{base}} \times (1 - 0.25) = F_{\text{base}} \times 0.75$$
+$$\text{ID}_{k+1} = \text{"BP"} + \left(\max_{p \in \text{Passes}} \text{NumericSuffix}(p.\text{id}) + 1\right)$$
 
 ---
 
 ## Project Structure
-```text
+
+```
 Bus-Pass-Management-System/
-├── main.py             # Python 3 console application and test runner
-├── test_bus_pass.py    # Automated test suite (5 acceptance test cases)
-├── test_cases_pass.png # High-resolution test suite verification screenshot
-├── buspass.txt         # Flat-file database for persistent storage
-├── README.md           # Project overview and run instructions
-└── summary.md          # Technical and architectural summary with test proof
+├── main.py                # Core application, domain logic & interactive console
+├── test_bus_pass.py       # Automated unittest suite (5 acceptance test cases)
+├── buspass.txt            # Persistent flat-file storage database
+├── README.md              # System architecture, user guide & verification matrix
+├── summary.md             # Technical design document & test verification report
+├── test_cases_pass.png    # Primary test pass verification graphic
+├── screenshots/           # VS Code integrated terminal execution captures
+│   ├── test_case_1_normal.png
+│   ├── test_case_2_boundary.png
+│   ├── test_case_3_invalid.png
+│   ├── test_case_4_multi_operation.png
+│   ├── test_case_5_renewal.png
+│   ├── test_case_all_pass_vscode.png
+│   └── vscode_full_ide_test_pass.png
+└── .gitignore             # Standard Python gitignore
 ```
 
 ---
 
+## Getting Started
+
+### Prerequisites
+* Python 3.7+ (Standard library only; zero external pip dependencies).
+
+### Run the Application
+Launch the interactive bus pass console from the terminal:
+```bash
+python main.py
+```
+
+### Run the Automated Test Suite
+Run acceptance tests directly via CLI:
+```bash
+python main.py --test
+# or
+python -m unittest test_bus_pass.py -v
+```
+
+### Interactive Commands
+* **Option 1 (Issue):** Issues a new bus pass with automated sequential ID and fee calculation.
+* **Option 2 (Renew):** Upgrades or updates the duration tier and discount for an existing pass ID.
+* **Option 3 (Search):** Looks up and prints record details by pass ID (`BP101`).
+* **Option 4 (View All):** Lists all active passes in formatted tabular format.
+* **Option 5 (Exit):** Safely saves and detaches from the application.
+* **Option 6 (Reset DB):** Truncates `buspass.txt` to test boundary conditions (empty file).
+* **Option 7 (Pre-seed DB):** Initializes `buspass.txt` with record `BP101` for test scenario 4.
+
+### Example Console Session
+```text
+=======================================================
+             BUS PASS MANAGEMENT SYSTEM
+=======================================================
+1. Issue New Pass
+2. Renew Existing Pass
+3. Search Pass by ID
+4. View All Passes
+5. Exit
+=======================================================
+Enter your choice (1-7): 1
+Name: Riya
+Route: Route 5
+Type: Monthly
+Category: General
+Pass issued. ID: BP101 | Riya | Route 5 | Monthly | Fee: Rs. 500 | Valid: 30 days
+```
+
+---
+
+## Verification Matrix
+
+The system is validated across normal operations, boundary limits, concession rules, and input rejection guardrails:
+
+| Test Scenario | Scope | Input Vector | Expected Output | Status |
+|---|---|---|---|:---:|
+| **Test Case 1** | Normal pass issuance | Riya, Route 5, Monthly, General | `Pass issued. ID: BP101 \| Riya \| Route 5 \| Monthly \| Fee: Rs. 500 \| Valid: 30 days` | **PASS** |
+| **Test Case 2** | Boundary / Minimum input | `buspass.txt` is empty, Option 4 (View all) | `No passes issued yet.` | **PASS** |
+| **Test Case 3** | Invalid pass tier rejection | Aman, Route 7, Weekly, General | `Invalid pass type. Choose Monthly, Quarterly or Yearly. Pass not issued.` | **PASS** |
+| **Test Case 4(a)** | Student concession discount | Aman, Route 7, Yearly, Student | `Pass issued. ID: BP102 \| Aman \| Route 7 \| Yearly \| Fee: Rs. 3600 \| Valid: 365 days` | **PASS** |
+| **Test Case 4(b)** | Search by pass ID | ID BP101 | `BP101 \| Riya \| Route 5 \| Monthly \| Fee: Rs. 500` | **PASS** |
+| **Test Case 5** | Pass renewal & recalculation | BP101, Quarterly, Student | `Pass renewed. ID: BP101 \| Riya \| Route 5 \| Quarterly \| Fee: Rs. 1012.5 \| Valid: 90 days` | **PASS** |
+| **Persistence Integrity** | Atomic write verification | Modify & reload `buspass.txt` | Pipe-delimited records match in-memory state | **PASS** |
+
+---
+
 ## Author & Academic Details
-- **Student Name:** Anish Kumar
+- **Author:** Anish Kumar ([@AnishKumar-7](https://github.com/AnishKumar-7))
 - **Course:** Programming Fundamentals and Logic Building Using Python (`RU-100-01-0021`)
 - **Institution:** Rungta International Skills University, School of Computer Science & Engineering
