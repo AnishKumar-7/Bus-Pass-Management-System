@@ -8,7 +8,7 @@
 
 ---
 
-## 1. Executive Summary
+## 1. Executive Summary & Problem Statement
 
 This report documents the architectural design, algorithmic implementation, and automated verification of the **Bus Pass Management System** (Problem Statement No. 71).
 
@@ -16,8 +16,13 @@ The system replaces manual paper registers with an automated, auditable, and per
 * Automated sequential alphanumeric ID generation (`BP101`, `BP102`, ...).
 * Enforcement of concession policies, including automatic 25% discounts for verified student passengers.
 * Multi-tier tariff schedules for Monthly (30 days), Quarterly (90 days), and Yearly (365 days) passes.
-* Flat-file persistence in `buspass.txt` utilizing atomic temporary file replacement to prevent data corruption.
+* Flat-file persistence in `buspass.txt` and tabular synchronization in `buspass.csv` utilizing atomic temporary file replacement to prevent data corruption.
 * Rigorous input sanitation guarding against malformed tiers, categories, and IDs.
+
+### Official Problem Statement Reference (Page 71 / PS-71)
+The assignment specification from Rungta International Skills University is officially captured below:
+
+![Official Problem Statement Assignment Sheet](problem_statement.png)
 
 ---
 

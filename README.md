@@ -1,6 +1,26 @@
 # Bus Pass Management System
 
-A production-grade, zero-dependency console application in Python 3 for commuter bus pass issuance, renewal, ID lookup, and flat-file persistent storage.
+[![Python 3](https://img.shields.io/badge/Python-3.x-blue.svg)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+> **Rungta International Skills University**  
+> **School of Computer Science and Engineering**  
+> *Bachelor of Technology - Computer Science and Engineering*
+
+A production-grade, zero-dependency console application in Python 3 for commuter bus pass issuance, renewal, ID lookup, and flat-file persistent storage developed under **Problem Statement No. 71**.
+
+---
+
+## 📌 Problem Statement Specification
+
+- **PS No.:** 71
+- **Project Title:** Bus Pass Management System
+- **Description:** Create a console application to issue and manage bus passes. The user can issue a new pass, renew an existing pass, search a pass by ID, and view all passes. Fees depend on the pass type and passenger category, and passes are saved in a persistent file (`buspass.txt`).
+- **Language:** Python 3
+- **Concepts:** Lists, Dictionaries, Functions, File Handling
+- **Tariff Matrix:** Monthly (30 days) Rs. 500, Quarterly (90 days) Rs. 1350, Yearly (365 days) Rs. 4800.
+- **Concession Rule:** Verified students receive an automatic 25% discount.
+- **First Pass ID:** `BP101` (Sequential progression: `BP101`, `BP102`, ...).
 
 ---
 
@@ -62,6 +82,7 @@ Bus-Pass-Management-System/
 ├── main.py                # Core application, domain logic & interactive console
 ├── buspass.csv            # Persistent tabular CSV database with column headers
 ├── buspass.txt            # Persistent pipe-delimited flat-file storage database
+├── problem_statement.png  # Official academic problem statement specification
 ├── README.md              # System architecture, user guide & verification matrix
 ├── summary.md             # Technical design document & test verification report
 ├── screenshots/           # VS Code integrated terminal execution captures
