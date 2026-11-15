@@ -106,6 +106,17 @@ Let an issued or renewed pass have base tariff $F_{\text{base}}$ defined by dura
 | **4. 25% student discount & input validation** | `calculate_fee()`, `normalize_pass_type()`, `normalize_category()` | **Compliant** |
 | **5. File persistence (`buspass.txt`) on startup/save** | `load_passes()` and `save_passes()` with atomic write guarantees | **Compliant** |
 
+### Multi-Scenario Test Datasets Matrix
+
+To verify defensive edge cases and system robustness beyond the benchmark data, the repository includes dedicated CSV test files:
+
+| Dataset File | Target Test Scenario | Record Count | Verification Scope | Status |
+|---|---|:---:|---|:---:|
+| `buspass.csv` | Active Production Database | 2 | Primary persistent state (`BP101 Riya`, `BP102 Aman`) | **PASS** |
+| `test_case2_empty.csv` | Empty File Boundary Guardrail | 0 | Verifies Test Case 2 (`No passes issued yet.`) without manual file resets | **PASS** |
+| `test_case4_preseeded.csv` | Multi-Operation Test Suite | 1 | Pre-seeded with `BP101`, verifies sequential ID generation (`BP102`) & lookup | **PASS** |
+| `test_case5_renewal.csv` | Pass Renewal Test Suite | 1 | Pre-seeded with `BP101 Monthly General`, verifies upgrade to `Quarterly Student` | **PASS** |
+
 ---
 
 ## 6. Test Cases & Verification Scenarios

@@ -38,10 +38,37 @@ def resolve_file_path(filename: str) -> str:
     return script_path
 
 
+def load_passes_from_csv(csv_path: str) -> list:
+    """Reads bus pass records directly from a CSV file into memory."""
+    passes = []
+    try:
+        with open(csv_path, "r", encoding="utf-8") as cf:
+            reader = csv.DictReader(cf)
+            for row in reader:
+                fee_raw = str(row.get("Fee", "0")).replace("Rs.", "").replace("Rs", "").strip()
+                try:
+                    fee_val = float(fee_raw)
+                    fee = int(fee_val) if fee_val.is_integer() else fee_val
+                except ValueError:
+                    fee = 0
+                passes.append({
+                    "id": str(row.get("Pass_ID", "")).strip(),
+                    "name": str(row.get("Name", "")).strip(),
+                    "route": str(row.get("Route", "")).strip(),
+                    "type": str(row.get("Pass_Type", "")).strip(),
+                    "category": str(row.get("Category", "General")).strip(),
+                    "fee": fee,
+                    "valid_days": int(row.get("Valid_Days", 30))
+                })
+    except Exception as e:
+        print(f"Error reading CSV {csv_path}: {e}", file=sys.stderr)
+    return passes
+
+
 def load_passes(filename: str = DEFAULT_FILE_NAME) -> list:
     """
     Reads bus pass records from disk into memory as a list of dictionaries.
-    Supports both pipe-delimited text storage and CSV fallback.
+    Supports both pipe-delimited text storage (.txt) and tabular CSV format (.csv).
     """
     filepath = resolve_file_path(filename)
     passes = []
@@ -50,29 +77,11 @@ def load_passes(filename: str = DEFAULT_FILE_NAME) -> list:
         # Fallback to CSV if text file is not present
         csv_path = resolve_file_path(CSV_FILE_NAME)
         if os.path.exists(csv_path) and os.path.abspath(filepath) == os.path.abspath(DEFAULT_FILE_NAME):
-            try:
-                with open(csv_path, "r", encoding="utf-8") as cf:
-                    reader = csv.DictReader(cf)
-                    for row in reader:
-                        fee_raw = row.get("Fee", "0").replace("Rs.", "").replace("Rs", "").strip()
-                        try:
-                            fee_val = float(fee_raw)
-                            fee = int(fee_val) if fee_val.is_integer() else fee_val
-                        except ValueError:
-                            fee = 0
-                        passes.append({
-                            "id": row.get("Pass_ID", "").strip(),
-                            "name": row.get("Name", "").strip(),
-                            "route": row.get("Route", "").strip(),
-                            "type": row.get("Pass_Type", "").strip(),
-                            "category": row.get("Category", "General").strip(),
-                            "fee": fee,
-                            "valid_days": int(row.get("Valid_Days", 30))
-                        })
-                return passes
-            except Exception:
-                pass
+            return load_passes_from_csv(csv_path)
         return passes
+
+    if filepath.lower().endswith(".csv"):
+        return load_passes_from_csv(filepath)
 
     try:
         with open(filepath, "r", encoding="utf-8") as f:
@@ -157,10 +166,14 @@ def save_passes_csv(passes: list, filename: str = CSV_FILE_NAME) -> None:
 
 def save_passes(passes: list, filename: str = DEFAULT_FILE_NAME) -> None:
     """
-    Saves records to pipe-delimited text file atomically via a temporary file.
-    Automatically synchronizes buspass.csv.
+    Saves records to pipe-delimited text file or CSV format atomically via a temporary file.
+    Automatically synchronizes buspass.csv when saving to default buspass.txt.
     """
     filepath = resolve_file_path(filename)
+    if filepath.lower().endswith(".csv"):
+        save_passes_csv(passes, filepath)
+        return
+
     temp_filepath = f"{filepath}.tmp"
     try:
         with open(temp_filepath, "w", encoding="utf-8") as f:
@@ -439,8 +452,12 @@ def run_self_tests() -> int:
 
 
 def main():
-    """Main interactive driver loop."""
-    passes = load_passes(DEFAULT_FILE_NAME)
+    """Main interactive driver loop with multi-dataset support."""
+    data_file = DEFAULT_FILE_NAME
+    if len(sys.argv) > 1 and not sys.argv[1].startswith("-"):
+        data_file = resolve_file_path(sys.argv[1])
+
+    passes = load_passes(data_file)
 
     while True:
         display_menu()
@@ -452,10 +469,10 @@ def main():
 
         if choice == "1":
             print("\n--- Issue New Pass ---")
-            issue_pass(passes, filename=DEFAULT_FILE_NAME)
+            issue_pass(passes, filename=data_file)
         elif choice == "2":
             print("\n--- Renew Pass ---")
-            renew_pass(passes, filename=DEFAULT_FILE_NAME)
+            renew_pass(passes, filename=data_file)
         elif choice == "3":
             print("\n--- Search Pass by ID ---")
             search_pass(passes)

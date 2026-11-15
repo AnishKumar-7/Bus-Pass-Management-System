@@ -79,19 +79,22 @@ $$\text{ID}_{k+1} = \text{"BP"} + \left(\max_{p \in \text{Passes}} \text{Numeric
 
 ```
 Bus-Pass-Management-System/
-├── main.py                # Core application, domain logic & interactive console
-├── buspass.csv            # Persistent tabular CSV database with column headers
-├── buspass.txt            # Persistent pipe-delimited flat-file storage database
-├── problem_statement.png  # Official academic problem statement specification
-├── README.md              # System architecture, user guide & verification matrix
-├── summary.md             # Technical design document & test verification report
-├── screenshots/           # VS Code integrated terminal execution captures
+├── main.py                   # Core application, domain logic & interactive console
+├── buspass.csv               # Persistent tabular CSV database with column headers
+├── buspass.txt               # Persistent pipe-delimited flat-file storage database
+├── test_case2_empty.csv      # Dedicated empty dataset for Test Case 2 boundary verification
+├── test_case4_preseeded.csv  # Pre-seeded dataset (BP101) for Test Case 4 verification
+├── test_case5_renewal.csv    # Pre-seeded dataset (BP101) for Test Case 5 renewal verification
+├── problem_statement.png     # Official academic problem statement specification
+├── README.md                 # System architecture, user guide & verification matrix
+├── summary.md                # Technical design document & test verification report
+├── screenshots/              # VS Code integrated terminal execution captures
 │   ├── test_case_1_normal.png
 │   ├── test_case_2_boundary.png
 │   ├── test_case_3_invalid.png
 │   ├── test_case_4_multi_operation.png
 │   └── test_case_5_renewal.png
-└── .gitignore             # Standard Python gitignore
+└── .gitignore                # Standard Python gitignore
 ```
 
 ---
@@ -105,6 +108,22 @@ Bus-Pass-Management-System/
 Launch the interactive bus pass console from the terminal:
 ```bash
 python main.py
+```
+
+### Running with Specific Test Case Datasets
+To verify individual test cases independently without manual file resets, launch `main.py` pointing to the designated test CSV file:
+```bash
+# Default active system database (buspass.txt / buspass.csv)
+python main.py
+
+# Test Case 2: Boundary test with empty database (outputs: "No passes issued yet.")
+python main.py test_case2_empty.csv
+
+# Test Case 4: Pre-seeded pass database (issues BP102 Aman and searches BP101 Riya)
+python main.py test_case4_preseeded.csv
+
+# Test Case 5: Renewal verification (renews BP101 to Quarterly Student)
+python main.py test_case5_renewal.csv
 ```
 
 ### Run the Automated Test Suite
