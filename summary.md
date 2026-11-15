@@ -215,9 +215,7 @@ Pass renewed. ID: BP101 | Riya | Route 5 | Quarterly | Fee: Rs. 1012.5 | Valid: 
 
 ### Automated Test Suite Execution in VS Code Integrated Terminal
 
-The complete automated test harness was executed via `python main.py --test` inside the VS Code integrated terminal:
-
-![Automated Test Suite Execution in VS Code](screenshots/test_case_all_pass_vscode.png)
+The automated test harness can be executed directly via `python main.py --test`:
 
 ```text
 PS C:\Users\Anish\Bus-Pass-Management-System> python main.py --test
