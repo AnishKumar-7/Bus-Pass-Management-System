@@ -60,12 +60,10 @@ $$\text{ID}_{k+1} = \text{"BP"} + \left(\max_{p \in \text{Passes}} \text{Numeric
 ```
 Bus-Pass-Management-System/
 ├── main.py                # Core application, domain logic & interactive console
-├── test_bus_pass.py       # Automated unittest suite (5 acceptance test cases)
-├── buspass.txt            # Persistent flat-file storage database
-├── buspass.csv            # Tabular CSV database export with column headers
+├── buspass.csv            # Persistent tabular CSV database with column headers
+├── buspass.txt            # Persistent pipe-delimited flat-file storage database
 ├── README.md              # System architecture, user guide & verification matrix
 ├── summary.md             # Technical design document & test verification report
-├── test_cases_pass.png    # Primary test pass verification graphic
 ├── screenshots/           # VS Code integrated terminal execution captures
 │   ├── test_case_1_normal.png
 │   ├── test_case_2_boundary.png
@@ -94,8 +92,6 @@ python main.py
 Run acceptance tests directly via CLI:
 ```bash
 python main.py --test
-# or
-python -m unittest test_bus_pass.py -v
 ```
 
 ### Interactive Commands
@@ -104,8 +100,6 @@ python -m unittest test_bus_pass.py -v
 * **Option 3 (Search):** Looks up and prints record details by pass ID (`BP101`).
 * **Option 4 (View All):** Lists all active passes in formatted tabular format.
 * **Option 5 (Exit):** Safely saves and detaches from the application.
-* **Option 6 (Reset DB):** Truncates `buspass.txt` to test boundary conditions (empty file).
-* **Option 7 (Pre-seed DB):** Initializes `buspass.txt` with record `BP101` for test scenario 4.
 
 ### Example Console Session
 ```text
@@ -118,7 +112,7 @@ python -m unittest test_bus_pass.py -v
 4. View All Passes
 5. Exit
 =======================================================
-Enter your choice (1-7): 1
+Enter your choice (1-5): 1
 Name: Riya
 Route: Route 5
 Type: Monthly
