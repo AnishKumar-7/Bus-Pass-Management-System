@@ -80,11 +80,11 @@ $$\text{ID}_{k+1} = \text{"BP"} + \left(\max_{p \in \text{Passes}} \text{Numeric
 ```
 Bus-Pass-Management-System/
 ├── main.py                   # Core application, domain logic & interactive console
-├── buspass.csv               # Persistent tabular CSV database with column headers
+├── passes.csv                # Persistent tabular CSV database with column headers
 ├── buspass.txt               # Persistent pipe-delimited flat-file storage database
-├── test_case2_empty.csv      # Dedicated empty dataset for Test Case 2 boundary verification
-├── test_case4_preseeded.csv  # Pre-seeded dataset (BP101) for Test Case 4 verification
-├── test_case5_renewal.csv    # Pre-seeded dataset (BP101) for Test Case 5 renewal verification
+├── empty.csv                 # Dedicated empty dataset for boundary verification
+├── sample.csv                # Pre-seeded dataset (BP101) for multi-operation verification
+├── renew.csv                 # Pre-seeded dataset (BP101) for pass renewal verification
 ├── problem_statement.png     # Official academic problem statement specification
 ├── README.md                 # System architecture, user guide & verification matrix
 ├── summary.md                # Technical design document & test verification report
@@ -110,27 +110,28 @@ Launch the interactive bus pass console from the terminal:
 python main.py
 ```
 
-### Running with Specific Test Case Datasets
-To verify individual test cases independently without manual file resets, launch `main.py` pointing to the designated test CSV file:
-```bash
-# Default active system database (buspass.txt / buspass.csv)
-python main.py
+### Running with Test Datasets
+The repository includes clean, easy-to-read CSV files representing each test scenario:
+* `passes.csv` — Full active database (`BP101 Riya`, `BP102 Aman`)
+* `empty.csv` — Empty database boundary test (outputs: `No passes issued yet.`)
+* `sample.csv` — Pre-seeded pass dataset (`BP101 Riya`) for multi-operation tests
+* `renew.csv` — Dedicated dataset for verifying pass renewal and fee recalculation
 
-# Test Case 2: Boundary test with empty database (outputs: "No passes issued yet.")
-python main.py test_case2_empty.csv
-
-# Test Case 4: Pre-seeded pass database (issues BP102 Aman and searches BP101 Riya)
-python main.py test_case4_preseeded.csv
-
-# Test Case 5: Renewal verification (renews BP101 to Quarterly Student)
-python main.py test_case5_renewal.csv
-```
-
-### Run the Automated Test Suite
-Run acceptance tests directly via CLI:
-```bash
-python main.py --test
-```
+### How to Run the Application
+1. **Open Terminal / Command Prompt** in the project folder:
+   ```bash
+   cd Bus-Pass-Management-System
+   ```
+2. **Execute with Python:**
+   ```bash
+   python main.py
+   ```
+3. **Use the Menu (1 to 5):**
+   * Enter `1` to Issue a new pass.
+   * Enter `2` to Renew an existing pass.
+   * Enter `3` to Search a pass by ID (e.g., `BP101`).
+   * Enter `4` to View all issued passes.
+   * Enter `5` to Exit cleanly.
 
 ### Interactive Commands
 * **Option 1 (Issue):** Issues a new bus pass with automated sequential ID and fee calculation.

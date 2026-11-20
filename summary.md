@@ -16,7 +16,7 @@ The system replaces manual paper registers with an automated, auditable, and per
 * Automated sequential alphanumeric ID generation (`BP101`, `BP102`, ...).
 * Enforcement of concession policies, including automatic 25% discounts for verified student passengers.
 * Multi-tier tariff schedules for Monthly (30 days), Quarterly (90 days), and Yearly (365 days) passes.
-* Flat-file persistence in `buspass.txt` and tabular synchronization in `buspass.csv` utilizing atomic temporary file replacement to prevent data corruption.
+* Flat-file persistence in `buspass.txt` and tabular synchronization in `passes.csv` utilizing atomic temporary file replacement to prevent data corruption.
 * Rigorous input sanitation guarding against malformed tiers, categories, and IDs.
 
 ### Official Problem Statement Reference (Page 71 / PS-71)
@@ -60,9 +60,9 @@ flowchart TD
    Implemented as a hash map providing $O(1)$ constant-time lookup for duration in days and base tariff.
 2. **In-Memory Pass Storage (`passes: List[Dict]`)**:
    Holds active pass dictionaries in memory (`id`, `name`, `route`, `type`, `category`, `fee`, `valid_days`).
-3. **Atomic File Persistence (`buspass.txt` & `buspass.csv`)**:
+3. **Atomic File Persistence (`buspass.txt` & `passes.csv`)**:
    - `buspass.txt`: Serialized in pipe-delimited plaintext format (`BP101 | Riya | Route 5 | Monthly | Rs. 500`). File writes operate through an atomic temporary file (`buspass.txt.tmp` $\rightarrow$ `os.replace`), preventing partial writes upon termination.
-   - `buspass.csv`: Standard comma-separated values database export (`Pass_ID,Name,Route,Pass_Type,Category,Fee,Valid_Days`) synchronized automatically on every pass mutation.
+   - `passes.csv`: Standard comma-separated values database export (`Pass_ID,Name,Route,Pass_Type,Category,Fee,Valid_Days`) synchronized with active pass records.
 
 ---
 
@@ -112,10 +112,10 @@ To verify defensive edge cases and system robustness beyond the benchmark data, 
 
 | Dataset File | Target Test Scenario | Record Count | Verification Scope | Status |
 |---|---|:---:|---|:---:|
-| `buspass.csv` | Active Production Database | 2 | Primary persistent state (`BP101 Riya`, `BP102 Aman`) | **PASS** |
-| `test_case2_empty.csv` | Empty File Boundary Guardrail | 0 | Verifies Test Case 2 (`No passes issued yet.`) without manual file resets | **PASS** |
-| `test_case4_preseeded.csv` | Multi-Operation Test Suite | 1 | Pre-seeded with `BP101`, verifies sequential ID generation (`BP102`) & lookup | **PASS** |
-| `test_case5_renewal.csv` | Pass Renewal Test Suite | 1 | Pre-seeded with `BP101 Monthly General`, verifies upgrade to `Quarterly Student` | **PASS** |
+| `passes.csv` | Active Production Database | 2 | Primary persistent state (`BP101 Riya`, `BP102 Aman`) | **PASS** |
+| `empty.csv` | Empty File Boundary Guardrail | 0 | Verifies Test Case 2 (`No passes issued yet.`) without manual file resets | **PASS** |
+| `sample.csv` | Multi-Operation Test Suite | 1 | Pre-seeded with `BP101`, verifies sequential ID generation (`BP102`) & lookup | **PASS** |
+| `renew.csv` | Pass Renewal Test Suite | 1 | Pre-seeded with `BP101 Monthly General`, verifies upgrade to `Quarterly Student` | **PASS** |
 
 ---
 
